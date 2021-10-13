@@ -8,7 +8,7 @@ import numpy as np
 
 
 #prepare the dataframe:
-df1 = pd.read_excel('PHDofEng&Sci.xlsx',header=[0,1,2],engine='openpyxl')
+df1 = pd.read_excel('PHDofEng&Sci.xlsx',header=[0,1,2])
 df1=df1.set_index(df1.columns[0])
 df1=df1.stack(level=0).stack(level=0).stack(level=0).reset_index()
 df1.columns=list(df1.columns[1:].insert(0,'Institute'))
