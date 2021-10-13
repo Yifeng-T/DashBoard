@@ -4,4 +4,4 @@ pandas==1.2.2
 numpy==1.20.1
 plotly==5.3.1
 dash_bootstrap_components==0.13.1
-xlrd
+xlrd==1.2.0
