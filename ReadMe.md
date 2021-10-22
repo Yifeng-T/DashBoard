@@ -84,7 +84,7 @@ python-3.9.1
 ```
 When you deploy your app, Heroku will automatically detect that it’s a Python application and will use the correct buildpack. If you also provide a runtime.txt, then it’ll pin down the Python version that your app will use.
 
-Next, create a requirements.txt file in the project’s root directory where you’ll copy the libraries required to set up your Dash application on a web server. For my application, you need add the following information:  
+Next, create a requirements.txt file in the project’s root directory where you’ll copy the libraries required to set up your Dash application on a web server. For my application, you need to add the following information:  
 ```text
 dash==2.0.0
 pandas==1.2.2
