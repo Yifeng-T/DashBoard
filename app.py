@@ -170,7 +170,7 @@ app.layout = html.Div([
             dbc.Col(html.H6(children='Data visulization made by Yifeng Tang'), className="mb-4")
         ]),
         dbc.Row([
-            dbc.Col(html.H6(children='Could access resources at:https://github.com/Yifeng-T/Biostat823_HomeWork/tree/main/HW4'), className="mb-4")
+            dbc.Col(html.H6(children='Could access resources at https://github.com/Yifeng-T/DashBoard'), className="mb-4")
         ]),
         html.Hr(),
 #===============
