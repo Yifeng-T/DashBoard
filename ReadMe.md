@@ -35,25 +35,112 @@ I created a Choropleth map of US. Users could easily observe the number of fresh
 <br>
 ![graph3.gif](https://i.loli.net/2021/10/23/mvaoTZtQROc1s4A.gif)  
 
+Here is the code to achieve the Choropleth map of US:  
+```python
+dbc.Row([      #command Row indicates there is another new line here:
+        dbc.Col(html.H5(children='Heat Map of granting phds by states', className="text-center"),
+                className="mt-4")]),  # graph title
+#create choropleth graph:
+        dcc.Graph(id='geograph',
+                  figure=px.choropleth(data_frame=dff1, 
+                                       locationmode='USA-states',
+                                       locations='Code',
+                                       scope="usa",
+                                       color='StudentNumber',
+                                       hover_data=['StudentNumber'],
+                                       color_continuous_scale=px.colors.sequential.YlOrRd,
+                                       labels={'Pct of Colonies Impacted'}))
+```
 <br>
 
 
 **In the second part, there are four plots.**  
 The first one is a histogram to show the distribution of number of graduated fresh PhDs in different majors. 
-<br>  
+ 
 
 ![graph4.gif](https://i.loli.net/2021/10/23/4FfW7zoctevYpXu.gif)  
+Here is the code to achive the bar plot:
+```python
+#title:
+dbc.Row([dbc.Col(html.H5(children='Major Diversity of 👨‍🎓PhDs Granting', className="text-center"), className="mt-4")]),  
 
+#draw the plot
+dcc.Graph(id='bargraph',figure=px.bar(dff2, x='Major',y="StudentNumber"))  # notice the id here
+```
 <br>  
 
 The second one is histogram to show the number of fresh PhDs major in different majors in the selected institution. There is a drop-down list on the top of the histogram. Users could either select the school in the list or type the key words of names to find the school.  
 ![graph5.gif](https://i.loli.net/2021/10/23/ow58lWZfvh1CH2A.gif)  
 <br>  
+This one is slightly different from the previous one, since we have a drop-down list here.  
+To achieve this feature, we need to define a dropdown first:
+```python
+dbc.Col(html.H5(children='Institutions Diversity of 👨‍🎓PhDs Granting', className="text-center"), className="mt-4")]),
+        html.Div(children=[html.Div(children="Institute", className="menu-title"),
+                 # Here is the code to define the dropdown:
+                 dcc.Dropdown(id="ins-filter", #id is an important parameter, we will talk about it later
+                 options=[{"label": region, "value": region} for region in np.sort(df_institu["Institute"].unique())],
+                 value="Harvard U.",
+                 clearable=False,
+                 className="dropdown",),]),
+ ```
+ When we have the dropdown, we need to create an according plot here, I choose to draw a bar plot: 
+ ```python
+ dcc.Graph(id='inst_graph',config={"displayModeBar": False}) 
+ ```
+ To connect the draop_down and the plot, we need to use the call back function. Call back could combine the feature part and graph plot by id.   
+We will talk about call back later.
+<br>  
+ 
+ 
+The third and forth include two plots, a pie chart and a stacked histogram. Users could select as many schools and majors as possible to see the ditributions. In the pie chart, users could observe the distributions of graduated PhDs from selected school by selected majors. While in the histogram, users could observe the distribution of number of graduated PhDs by majors in selected schools. The different colors in each bar represent selected majors, and each bar represents one selected school.  
 
-The third and forth include two plots, a pie chart and a stacked histogram. Users could select as many schools and majors as possible to see the ditributions. In the pie chart, users could observe the distributions of graduated PhDs from selected school by selected majors. While in the histogram, users could observe the distribution of number of graduated PhDs by majors in selected schools. The different colors in each bar represent selected majors, and each bar represents one selected school. 
 ![graph6.gif](https://i.loli.net/2021/10/23/Fs527net9K1ABMg.gif)
-<br>  
-<br>  
+
+This one is interesting. We have two drop downs here, and every drop_down would have effects on both of the plots.  
+First, we define the drop_down, they include majors and schools:
+```python
+html.Div(children=[html.Div(children="Select Majors", className="menu-title"),
+                   dcc.Dropdown(id='major_select', value=['Chemistry','Psychology'], multi=True, 
+                   options=[{'label': x, 'value': x} for x in df_major_ins["Major"].unique()])]),
+        
+html.Div(children=[html.Div(children="Select Institutes", className="menu-title"),
+                   dcc.Dropdown(id='ins_select', value=['Boston U.','Emory U.','Harvard U.'], multi=True, 
+                   options=[{'label': x, 'value': x} for x in df_institu["Institute"].unique()])])
+```
+And we create two plots: 
+```python
+dbc.Col(dcc.Graph(id='pie-graph', figure={}, className='six columns'), width=4),
+dbc.Col(dcc.Graph(id='my-graph',
+        figure={}, clickData=None, hoverData=None,
+        config={'staticPlot': False,
+                'scrollZoom': True,      
+                'doubleClick': 'reset',  
+                'showTips': False,       
+                'displayModeBar': True,  
+                'watermark': True,}, 
+        className='six columns'), width=8)])
+```
+You could notice the two ids of drop down are *"major select" and "ins_select"*, while the ids of graph are *"pie-graph" and "my-graph"*.   
+Here is a call_back function to connect them:
+```python
+@app.callback([Output(component_id='pie-graph', component_property='figure'),
+               Output(component_id='my-graph', component_property='figure')],
+              [Input(component_id='major_select', component_property='value'),
+               Input(component_id='ins_select', component_property='value')])
+
+def draw(major_chosen, ins_select):
+    df_two_1 = df_major_ins[df_major_ins["Major"].isin(major_chosen)]
+    df_two_1 = df_two_1[df_two_1["Institute"].isin(ins_select)]
+
+    fig = px.bar(df_two_1, x='Institute', y='StudentNumber', color='Major', title="Stack Histogram analysis")
+    fig2 = px.pie(data_frame=df_two_1, values='StudentNumber', names='Major', title='Pie chart ANALYSIS')
+    return fig2, fig
+```
+In the callback, we have two input values, they are the ids of dropdown lists. Also we have two outputs, they are the ids of graphs. The input means the actions you want to act to change the graph, while the output is the new appearance of the plot. How to interprate the plots based on the input? We need the function below the callback part. In this function, we have two inputs, they are just the input from drop down (*Attention here, the order of the input should also be the same as you defined in call back part*). After changing the plots based on the input, we have two outcomes. The outcomes you created in the function are exactly the plot that will show in the page.   
+Try to write the call back function for the previous plot. You could check the call back function in the recourses folder. 
+<br>   
+
 
 **In the third part**   
 There are two histograms to show number of graduated students by majors. One plot is for students gradyated in science field, and anotherone is for engineering field. 
